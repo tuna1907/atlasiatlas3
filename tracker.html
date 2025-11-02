@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3I/ATLAS Live Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .main-box {
+            background: linear-gradient(135deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .icon {
+            width: 32px;
+            height: 32px;
+            color: #10b981;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .title-highlight {
+            color: #fbbf24;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .data-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .data-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .label {
+            color: #9ca3af;
+            font-size: 18px;
+            min-width: 100px;
+        }
+
+        .value {
+            font-size: 24px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .value-small {
+            font-size: 20px;
+        }
+
+        .badge {
+            background-color: #2563eb;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .highlight-yellow {
+            color: #fbbf24;
+        }
+
+        .highlight-blue {
+            color: #60a5fa;
+        }
+
+        .data-box {
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, transparent 100%);
+            border-left: 4px solid #fbbf24;
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .data-box-orange {
+            background: linear-gradient(90deg, rgba(249, 115, 22, 0.1) 0%, transparent 100%);
+            border-left: 4px solid #f97316;
+        }
+
+        .data-box-blue {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .data-box-perihelion {
+            background: linear-gradient(90deg, rgba(249, 115, 22, 0.2) 0%, transparent 100%);
+            border-left: 4px solid #f97316;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .perihelion-grid {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .perihelion-label {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .perihelion-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .perihelion-time {
+            color: #10b981;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .perihelion-subtitle {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .big-value {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .unit {
+            color: #9ca3af;
+            font-size: 20px;
+        }
+
+        .velocity {
+            color: #10b981;
+            font-size: 24px;
+            font-weight: 600;
+            margin-left: 130px;
+            margin-top: 8px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #374151;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .time-display {
+            color: #10b981;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-box">
+            <!-- Header -->
+            <div class="header">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+                <h1 class="title">Object: <span class="title-highlight">3I/ATLAS</span></h1>
+            </div>
+
+            <!-- Data Grid -->
+            <div class="data-grid">
+                <!-- Left Column -->
+                <div class="data-section">
+                    <!-- RA & Dec -->
+                    <div class="data-row">
+                        <span class="label">RA</span>
+                        <span class="value" id="ra">13h 22m 14.2s</span>
+                        <span class="label highlight-blue" style="margin-left: auto;">Dec</span>
+                        <span class="value-small" id="dec">-06° 24' 13.8"</span>
+                        <span class="badge">Appar</span>
+                        <span class="highlight-yellow" style="font-size: 14px;">J2000</span>
+                    </div>
+
+                    <!-- Magnitude -->
+                    <div class="data-box">
+                        <span class="label" style="font-size: 24px;">Mag:</span>
+                        <span class="big-value" id="magnitude">14.68</span>
+                        <span class="label" style="font-size: 16px;">(Estimated: JPL)</span>
+                        <span class="label" style="font-size: 20px; margin-left: 24px;">Const:</span>
+                        <span class="highlight-yellow" style="font-size: 32px; font-weight: 600;">Virgo</span>
+                    </div>
+
+                    <!-- Sun Distance -->
+                    <div class="data-box data-box-orange">
+                        <div style="width: 100%;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="label" style="font-size: 24px;">Sun Dist:</span>
+                                <span class="big-value" id="sunDistKm">204,110,488</span>
+                                <span class="unit">km</span>
+                            </div>
+                            <div class="velocity" id="sunVelocity">[68.3 km/s]</div>
+                        </div>
+                    </div>
+
+                    <!-- Earth Distance -->
+                    <div class="data-box data-box-blue">
+                        <div style="width: 100%;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="label" style="font-size: 24px;">Earth Dist:</span>
+                                <span class="big-value" id="earthDistKm">338,556,507</span>
+                                <span class="unit">km</span>
+                            </div>
+                            <div class="velocity" id="earthVelocity">[44.0 km/s]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="data-section">
+                    <!-- Perihelion Info -->
+                    <div class="data-box-perihelion">
+                        <div class="perihelion-grid">
+                            <div>
+                                <div class="perihelion-label">Perihelion:</div>
+                                <div class="perihelion-value">29 Oct 2025 11:33 UTC</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="perihelion-time" id="timeSincePeri">[+4d 1h 4m 31s]</div>
+                                <div class="perihelion-subtitle">Time since perihelion</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <div class="time-display" id="currentTime">11/02/2025, 12:47:15 PM UTC</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Orbital elements
+        const PERIHELION_JD = 2460977.9814392594;
+        const PERIHELION_DATE = new Date('2025-10-29T11:33:00Z');
+
+        function calculateJulianDate(date) {
+            return (date.getTime() / 86400000) + 2440587.5;
+        }
+
+        function updateCometData() {
+            const now = new Date();
+            const JD = calculateJulianDate(now);
+            const daysSincePeri = JD - PERIHELION_JD;
+
+            // Distance calculations
+            const sunDistance = 1.356 + Math.abs(daysSincePeri) * 0.015;
+            const baseEarthDist = 2.49 + (daysSincePeri > 0 ? daysSincePeri * 0.02 : 0);
+            const earthDistance = Math.max(1.797, Math.min(baseEarthDist, 4.5));
+
+            // Position (RA/Dec)
+            const raHours = 13 + (daysSincePeri * 0.15);
+            const raMinutes = 22 + ((daysSincePeri * 10) % 60);
+            const raSeconds = Math.floor((daysSincePeri * 600) % 60);
+
+            const decDegrees = -6 - (daysSincePeri * 0.25);
+            const decMinutes = 24 - Math.floor((daysSincePeri * 5) % 60);
+            const decSeconds = Math.floor((daysSincePeri * 300) % 60);
+
+            // Magnitude
+            const magnitude = 12.2 + (daysSincePeri > 0 ? daysSincePeri * 0.08 : -daysSincePeri * 0.05);
+
+            // Update DOM
+            document.getElementById('ra').textContent = 
+                `${Math.floor(raHours)}h ${Math.abs(Math.floor(raMinutes))}m ${Math.abs(raSeconds).toFixed(1)}s`;
+            
+            document.getElementById('dec').textContent = 
+                `${Math.floor(decDegrees)}° ${Math.abs(Math.floor(decMinutes))}' ${Math.abs(decSeconds).toFixed(1)}"`;
+            
+            document.getElementById('magnitude').textContent = magnitude.toFixed(2);
+            
+            document.getElementById('sunDistKm').textContent = 
+                Math.floor(sunDistance * 149597870.7).toLocaleString();
+            
+            document.getElementById('earthDistKm').textContent = 
+                Math.floor(earthDistance * 149597870.7).toLocaleString();
+
+            // Time since perihelion
+            const days = Math.floor(daysSincePeri);
+            const hours = Math.floor((daysSincePeri % 1) * 24);
+            const minutes = Math.floor(((daysSincePeri % 1) * 1440) % 60);
+            const seconds = Math.floor(((daysSincePeri % 1) * 86400) % 60);
+            
+            document.getElementById('timeSincePeri').textContent = 
+                `[+${days}d ${hours}h ${minutes}m ${seconds}s]`;
+
+            // Current time
+            const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(now.getUTCDate()).padStart(2, '0');
+            const year = now.getUTCFullYear();
+            let hour = now.getUTCHours();
+            const minute = String(now.getUTCMinutes()).padStart(2, '0');
+            const second = String(now.getUTCSeconds()).padStart(2, '0');
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            hour = String(hour).padStart(2, '0');
+
+            document.getElementById('currentTime').textContent = 
+                `${month}/${day}/${year}, ${hour}:${minute}:${second} ${ampm} UTC`;
+        }
+
+        // Update every second
+        updateCometData();
+        setInterval(updateCometData, 1000);
+    </script>
+</body>
+</html>
